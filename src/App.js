@@ -81,7 +81,11 @@ export default class App extends React.Component  {
     this.downloadDesignApe = this.downloadDesignApe.bind(this);
     this.selectPlasmidTemplate = this.selectPlasmidTemplate.bind(this);
   }
-  //  API
+  /****                 ****\
+
+              API 
+              
+  \****                 ****/
   searchForGene(e) {
     if(e){e.preventDefault();}
     this.setState({results:null,fastaUrl:null,jbrowseUrl:null,statusMessage:'...Searching For Gene'}, ()=>{
@@ -350,7 +354,11 @@ export default class App extends React.Component  {
       })
     });
   }
-  // Form Controls and Display
+  /****                          ****\
+   
+        Form Controls and Display 
+
+  \****                           ****/
   changeGene(e) {
     this.setState({geneName:e.target.value});
   }
@@ -454,7 +462,11 @@ export default class App extends React.Component  {
   showPrimerInfo() {
     this.setState({showPrimerInfo:!this.state.showPrimerInfo,showTargetInfo:false});
   }
-  // Utilities & File Manipulation
+  /****                             ****\
+   
+        Utilities & File Manipulation 
+
+  \****                             ****/
   errorCheck(obj) {
     if(obj.code) {return 'ERROR: SERVER ERROR'}
     if(obj.error){return 'ERROR: '+obj.error}
@@ -730,7 +742,7 @@ export default class App extends React.Component  {
     const statusMessage = !this.state.statusMessage?null:typeof this.state.statusMessage!='string'?this.state.statusMessage:WaterFall(this.state.statusMessage);
     const title = !this.state.geneTitle?'Fly Cypher':this.state.geneTitle;
     const mobile = this.state.width<600?true:false;
-    // Step 1
+    // Landing
     const geneNameForm = <Fragment>
         <form id='gene-name'  onSubmit={this.searchForGene.bind(this)}>
           <input  value={this.state.geneName} onChange={this.changeGene.bind(this)} type='text' />
@@ -980,7 +992,7 @@ export default class App extends React.Component  {
         {markedUpGene()}
       </div>
     </div>;
-    //select target area
+    //Select target area
     const step1 = !this.state.fullGene?<li>
       <label>Step 1</label>
       <h2>Search For A Gene by Name</h2><div>{geneNameForm}</div>
@@ -1017,6 +1029,7 @@ export default class App extends React.Component  {
           <div className='primers'>{primerList()}</div>
       </div>
     </li>
+    //Final Step
     const pamBox = () => {
       let targetOnly;
       let pam;
