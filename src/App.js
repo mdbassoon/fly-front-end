@@ -7,10 +7,7 @@ export default class App extends React.Component  {
   constructor(props) {
     super(props);
     const plasmidOptions = ["C terminal EGFP and SSPB tag","C terminal mDendra2 and SSPB tag","C terminal mScarlett and SSPB tag","N terminal EGFP and SSPB tag","N terminal mDendra2 and SSPB tag","N terminal mScarlett and SSPB tag"];
-    let url = 'https://itchy-badger-20.localtunnel.me/api';
-    if(process.env.NODE_ENV==='development') {
-      url = 'http://10.0.0.98:3000/api'; 
-    }
+    url = 'http://142.93.118.6/api'; 
     this.state = {
       // Informational & API related
       url:url,
