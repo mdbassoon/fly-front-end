@@ -17,7 +17,6 @@ body {
 }
 .App {overflow: hidden;}
 .main {
-  max-width:1080px;
   margin:0 auto;
 }
 ul {margin:0px;padding:0px;list-style: none;}
@@ -27,20 +26,17 @@ code {
     monospace;
 }
 .header {
-  height:160px;
-  border-bottom:2px solid #333;
-  box-shadow: 1px 2px 0px -1px rgba(50,50,50,0.4);
+  color:#fff;
   position: relative;
+  background:#333;
   z-index: 3;
 }
-.header h1 {
+#panel-2 h1 {
   text-align: center;
   font-size:36px;
   margin: 0px;
-  left: 50%;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  padding:20px 0px;
+  max-width:900px;
   width: 100%;
 }
 .tool-box:active {
@@ -48,72 +44,73 @@ code {
 }
 .tool-box label, .form label, .tool-bar {
   display:block;
-  padding:11px 15px;
-  text-align: center;
-  background: #fff;
-  border-bottom: 1px solid #333;
-  border-right: 1px solid #333;
-  border-left: 1px solid #333;
+  padding:11px 18px;
+  text-align: left;
   position: relative;
-  box-shadow: 1px 1px 1px rgba(50,50,50,0.8);
 }
-.tool-bar {z-index:2;position: relative;text-align: right;}
+.tool-bar {z-index:2;position: relative;padding:4px 18px;}
 .form label {
-  background:#efefef;
   border-top:0px;
   font-weight:bold;
-  border-bottom: 2px solid #333;
-  border-top: 1px solid #333;
 }
 .tool-box label {cursor: pointer;}
 .table-key {
   padding: 13.5px 0px;
-  background:#f3f3f3;
+  border-top: 1px solid #333;
   border-bottom: 2px solid #333;
-  border-right:1px solid #333;
-  box-shadow: 1px 0px 2px 0px rgba(50,50,50,0.8);
   position: relative;
   z-index: 1;
+  display: flex;
 }
 .button {
   cursor: pointer;
   background:#f3f3f3;
 }
 ul.table-key li {
-  display: inline-block;
   text-align: center;
-  width:25%;
+  width:20%;
 }
 #panel-1, #panel-2 {
   display:inline-block;
   vertical-align: top;
+  width:100%;
+}
+#panel-1 {
+  border-right:1px solid #333;
+}
+#panel-2 { 
+  max-width:900px;
+  margin:0 auto;
 }
 ul.form {
   text-align:center;
 }
+ul.form form {
+  padding:0px 15px;
+  text-align:left;
+}
 .form h2 {
   font-weight:normal;
   font-size:16px;
-  padding:11px;
+  padding:2px 15px;
   margin:0px;
   margin-bottom:10px;
-  border-bottom:2px solid #333;
   font-style:italic;
+  text-align: left;
 }
 .form .input-wrap {
   display: block;
   padding: 11px 15px;
 }
 .form #base-padding {
-  text-align: right;
-  border-bottom:1px solid #333;
+  text-align: left;
 }
 .form #base-padding select {margin-left:5px;}
 .tools {position:relative;}
 .tools .button {text-align: center;}
 .gene {
   font-family:'Roboto Mono';
-  line-height: 1.2
+  line-height: 1.37
 }
 .loading {
   position:absolute;
@@ -166,32 +163,48 @@ ul.form {
   overflow-y: scroll;
 }
 #gene-name {
-  padding:30px 20px;
+
 }
 .tool-menu {
   position:absolute;
-  top:47px;
+  top:34px;
   width:100%;
-  background:#f3f3f3;
-  box-shadow:1px 1px 2px rgba(50,50,50,0.8);
+  background:#333;
   z-index: 100;
+  max-width:274px;
 }
 ul.tool-menu li .button {
   cursor: pointer;
-  padding:12px;
-  text-align: center;
+  padding: 8px 12px 10px;
+  text-align: left;
   display: block;
-  border-bottom: 1px solid #333;
-  border-right: 1px solid #333;
+  background:#333;
+}
+ul.tool-menu li .button:hover {
+  background:#f0f0f0;
+  color:#333;
 }
 ul.tool-menu li .button:active {
   cursor: pointer;
   padding:12px;
-  text-align: center;
   background: #f0f0f0;
+}
+.menu-button:hover {
+  text-decoration: underline;
 }
 .download-section .button:active {
   background:#dfdfdf;
+}
+.tool-menu li:hover,.tool-menu li:hover a {
+  text-decoration: underline;
+  text-decoration-color:#333;
+}
+.tool-menu a {
+  color:#fff;
+  text-decoration: none;
+}
+.download-section .button:hover label,.download-section .button:hover label a {
+  text-decoration: underline;
 }
 .download-section .button {
   width: 80%;
@@ -200,9 +213,12 @@ ul.tool-menu li .button:active {
   margin: 10px auto;
   padding: 11px;
   background:#efefef;
-  border: 1px solid #333;
-  box-shadow: 1px 1px 2px rgba(50,50,50,0.8);
-  text-shadow: 1px 1px 2px rgba(50,50,50,0.6);
+}
+.disabled {
+  pointer-events: none;
+}
+.button.disabled {
+  color:#c7c7c7;
 }
 .download-section form {
   padding: 10px 15px;
@@ -219,4 +235,7 @@ ul.tool-menu li .button:active {
 #panel-2 .pam-box {
   height:100%;
   overflow: auto;
+}
+.panels {
+  display:flex;
 }

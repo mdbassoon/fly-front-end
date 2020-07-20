@@ -7,7 +7,7 @@ export default class App extends React.Component  {
   constructor(props) {
     super(props);
     const plasmidOptions = ["C terminal EGFP and SSPB tag","C terminal mDendra2 and SSPB tag","C terminal mScarlett and SSPB tag","N terminal EGFP and SSPB tag","N terminal mDendra2 and SSPB tag","N terminal mScarlett and SSPB tag"];
-    url = 'http://142.93.118.6/api'; 
+    const url = 'http://142.93.118.6/api'; 
     this.state = {
       // Informational & API related
       url:url,
@@ -66,6 +66,8 @@ export default class App extends React.Component  {
     this.fontSize = this.fontSize.bind(this);
     this.showTargetInfo = this.showTargetInfo.bind(this);
     this.showPrimerInfo = this.showPrimerInfo.bind(this);
+    this.selectStartCodon = this.selectStartCodon.bind(this);
+    this.selectStopCodon = this.selectStopCodon.bind(this);
     // Utilities
     this.revComp = this.revComp.bind(this);
     this.errorCheck = this.errorCheck.bind(this);
@@ -200,8 +202,8 @@ export default class App extends React.Component  {
           fullGene:fullGene,
           colorCode:colorCode,
           sectionNames:sectionNames,
-          startCodon:startCodon,
-          stopCodon:stopCodon,
+          potentialStartCodon:startCodon,
+          potentialStopCodon:stopCodon,
           statusMessage:null,
           pre:res.pre
         },()=>{return true});
@@ -440,9 +442,13 @@ export default class App extends React.Component  {
     this.setState({width:width,height:height,mobile:mobile});
   }
   subMenu(e, bool) {
-    if(!bool)
-    bool = !this.state.subMenu;
-    this.setState({subMenu:bool});
+    console.log(e.target);
+    if(e.target.classList.contains("plasmid-button")){
+      this.setState({subMenu:true});
+    } else if(!bool){
+      bool = !this.state.subMenu;
+      this.setState({subMenu:bool});
+    }
   }
   baseSelector(e) {
     const bases = parseInt(e.target.value);
@@ -458,6 +464,12 @@ export default class App extends React.Component  {
   }
   showPrimerInfo() {
     this.setState({showPrimerInfo:!this.state.showPrimerInfo,showTargetInfo:false});
+  }
+  selectStartCodon(i) {
+    this.setState({startCodon:i-1});
+  }
+  selectStopCodon(i) {
+    this.setState({stopCodon:i-1});
   }
   /****                             ****\
    
@@ -569,7 +581,7 @@ export default class App extends React.Component  {
     this.setState({showPamInput:!this.state.showPamInput,showPlasmidSelect:false,frameShift:frameShift});
   }
   showPlasmidSelect() {
-    this.setState({showPlasmidSelect:!this.state.showPlasmidSelect,plasmidTemplate:null});
+    this.setState({showPlasmidSelect:!this.state.showPlasmidSelect,plasmidTemplate:null,subMenu:!this.state.showPlasmidSelect},()=>{console.log(this.state)});
   }
   mutatePam(e, str) {
     let pam;
@@ -603,8 +615,8 @@ export default class App extends React.Component  {
           targetI = revTargetMatch.index;
         }
         const pamStart = revTargetMatch?targetI-2:targetI+20;
-        const start = parseInt(this.state.startCodon)+parseInt(this.state.extraBases)+1;
-        const stop = parseInt(this.state.stopCodon)+parseInt(this.state.extraBases)+1; 
+        const start = parseInt(this.state.potentialStartCodon)+parseInt(this.state.extraBases)+1;
+        const stop = parseInt(this.state.potentialStopCodon)+parseInt(this.state.extraBases)+1; 
         gene = !this.state.mutatedPam?gene:gene.substr(0,pamStart-1)+this.state.mutatedPam+gene.substr(pamStart+2,gene.length);
         const featureArr = [
           newFeature(start+'..'+(start+2),'Start Codon','#df2935'),
@@ -667,8 +679,9 @@ export default class App extends React.Component  {
   }
   downloadPlasmid(e) {
     e.preventDefault();
+    if(!this.state.plasmidTemplate){return false;}
     const url = (window.location.origin+'/plasmid_folder/')+(this.state.plasmidTemplate.split(' ').join('%20'))+'.txt';
-    this.setState({showPlasmidSelect:false},()=>{
+    this.setState({showPlasmidSelect:false,subMenu:false},()=>{
       fetch(url).then((res)=>{return res.text()}).then((data)=>{
         const preArm1 = data.split('**arm_1_start**')[0];
         const targetSearch = this.state.fullGene.search(this.state.potentialTargets[0].strand==='-'?this.revComp(this.state.target):this.state.target);
@@ -807,9 +820,9 @@ export default class App extends React.Component  {
               singlePrimers = section[i];
               singleList.push(<li onClick={this.selectPrimer.bind(this, key, singlePrimers)} style={{padding:'20px 0px',display:'flex',flexDirection:'column',borderBottom:'1px solid #333',cursor:'pointer'}} onMouseEnter={this.highlightPrimer.bind(this, singlePrimers[7])} onMouseLeave={this.stopPrimerHighlight.bind(this, singlePrimers[7])} key={primerKeys[i]}>
                 <div style={{display:'flex',marginLeft:'20px'}}>{singlePrimers[7]}</div>
-                <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>tm: </div><div>{singlePrimers[3]}</div></div>
-                <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>gc%: </div><div>{singlePrimers[4]}</div></div> 
-                <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>any (Self Complementarity): </div><div>{singlePrimers[5]}</div></div>
+                <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>Tm: </div><div>{singlePrimers[3]}</div></div>
+                <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>GC%: </div><div>{singlePrimers[4]}</div></div> 
+                <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>Any (Self Complementarity): </div><div>{singlePrimers[5]}</div></div>
                 <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>3' (Self Complementarity): </div><div>{singlePrimers[6]}</div></div>
               </li>);
             }
@@ -817,9 +830,9 @@ export default class App extends React.Component  {
             singlePrimers = this.state.primers['selected'][key];
             singleList.push(<li style={{padding:'20px 0px',display:'flex',flexDirection:'column',borderBottom:'1px solid #333',cursor:'initial'}}>
               <div style={{display:'flex',marginLeft:'20px'}}>{singlePrimers[7]}</div>
-              <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>tm: </div><div>{singlePrimers[3]}</div></div>
-              <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>gc%: </div><div>{singlePrimers[4]}</div></div> 
-              <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>any (Self Complementarity): </div><div>{singlePrimers[5]}</div></div>
+              <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>Tm: </div><div>{singlePrimers[3]}</div></div>
+              <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>GC%: </div><div>{singlePrimers[4]}</div></div> 
+              <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>Any (Self Complementarity): </div><div>{singlePrimers[5]}</div></div>
               <div style={{display:'flex',marginLeft:'20px'}}><div style={{marginRight:'10px'}}>3' (Self Complementarity): </div><div>{singlePrimers[6]}</div></div>
             </li>);
           }
@@ -840,7 +853,7 @@ export default class App extends React.Component  {
     const markedUpGene = () => {
       if(!this.state.fullGene) {return null}
       else {
-        const info = <span>{this.state.pre}</span>;        
+        const info = <span>{this.state.pre}<br/></span>;        
         let completeGene = [];
         for(let i=0;i<this.state.fullGene.length;i++) {
           completeGene.push(
@@ -848,13 +861,13 @@ export default class App extends React.Component  {
             key={i}
             onMouseEnter={this.highlightPotentialTarget.bind(this, i)}
             onMouseLeave={this.clearHighlight.bind(this)}
-            onClick={this.state.potentialTargets?null:this.searchForTargets.bind(this, i)}>
+            onClick={!this.state.startCodon?this.selectStartCodon.bind(this, i):!this.state.stopCodon?this.selectStopCodon.bind(this, i):this.state.potentialTargets?null:this.searchForTargets.bind(this, i)}>
             {this.state.fullGene[i]}
           </span>
           );
         }
         const highlightTargetSearch = () => {
-          if(!this.state.targetSearch||this.state.potentialTargets) {return null} else {
+          if(!this.state.stopCodon||!this.state.targetSearch||this.state.potentialTargets) {return null} else {
             const pre = this.state.targetSearch>100?<span>{this.state.fullGene.slice(0, this.state.targetSearch-100)}</span>:null;
             const pretarget = this.state.targetSearch>100?<span style={{background:'rgba(19,111,99,0.3)'}}>{this.state.fullGene.slice(this.state.targetSearch-100, this.state.targetSearch)}</span>:<span style={{background:'rgba(19,111,99,0.3)'}}>{this.state.fullGene.slice(0, this.state.targetSearch)}</span>
             const target = <span style={{background:'red'}}>{this.state.fullGene.slice(this.state.targetSearch, this.state.targetSearch+1)}</span>
@@ -906,8 +919,8 @@ export default class App extends React.Component  {
           }
         }
         const highlightCodons = () => {
-          const startIndex = this.state.startCodon+this.state.extraBases;
-          const stopIndex = this.state.stopCodon+this.state.extraBases;
+          const startIndex = this.state.potentialStartCodon+this.state.extraBases;
+          const stopIndex = this.state.potentialStopCodon+this.state.extraBases;
           const pre = this.state.fullGene.slice(0,startIndex);
           const start = this.state.fullGene.slice(startIndex,startIndex+3);
           const postStart = this.state.fullGene.slice(startIndex+3,stopIndex);
@@ -915,35 +928,64 @@ export default class App extends React.Component  {
           return <Fragment>
             {info}
             <span>{pre}</span>
-            <span style={{background:'#df2935'}}>{start}</span>
+            <span style={{background:!this.state.startCodon?'rgba(223,41,53,0.3)':"none"}}>{start}</span>
             <span>{postStart}</span>
-            <span style={{background:'#df2935'}}>{stop}</span>
+            <span style={{background:!this.state.stopCodon?'rgba(223,41,53,0.3)':"none"}}>{stop}</span>
           </Fragment>
         }
-
+        const highlightStartCodon = () => {
+          if(this.state.startCodon){
+          const startIndex = this.state.startCodon+this.state.extraBases;
+          const stopIndex = this.state.potentialStopCodon+this.state.extraBases;
+          const pre = this.state.fullGene.slice(0,startIndex);
+          const start = this.state.fullGene.slice(startIndex,startIndex+3);
+            return <Fragment>
+              {info}
+              <span>{pre}</span>
+              <span style={{background:'#df2935'}}>{start}</span>
+            </Fragment>
+          }
+        }
+        const highlightStopCodon = () =>{
+          if(this.state.stopCodon){
+            const startIndex = this.state.startCodon+this.state.extraBases;
+            const stopIndex = this.state.stopCodon+this.state.extraBases;
+            const pre = this.state.fullGene.slice(0,startIndex);
+            const start = this.state.fullGene.slice(startIndex,startIndex+3);
+            const postStart = this.state.fullGene.slice(startIndex+3,stopIndex);
+            const stop = this.state.fullGene.slice(stopIndex,stopIndex+3);
+            return <Fragment>
+              {info}
+              <span>{pre}</span>
+              <span >{start}</span>
+              <span>{postStart}</span>
+              <span style={{background:'#df2935'}}>{stop}</span>
+            </Fragment>
+          }
+        }
         const geneStyle = {
-          padding:!mobile?'10px 20px':'10px 15px 30px',
+          padding:!mobile?'10px 0px':'10px 15px 30px',
           position:'absolute',
           top:1,left:-1,
           background:'rba(0,0,0,0)',
           letterSpacing:'4px',
           fontWeight:600,
           color:'rgba(55,55,55,0)',
-          width:(!mobile?Math.floor(this.state.width*(2/3))-40:window.innerWidth-30)+'px',
+          width:!mobile?'900px':window.innerWidth-30+'px',
           cursor:'pointer',
           textShadow:'none'
         }
         const geneStyle2 = {
-          padding:!mobile?'10px 20px':'10px 15px 30px',
+          padding:!mobile?'10px 0px':'10px 15px 30px',
           position:'absolute',
           top:0,left:0,
           background:'rba(0,0,0,0)',
           letterSpacing:'4px',
           fontWeight:600,
-          width:(!mobile?Math.floor(this.state.width*(2/3))-40:window.innerWidth-30)+'px',
+          width:!mobile?'900px':window.innerWidth-30+'px',
         }
         const geneStyle3 = {
-          padding:!mobile?'10px 20px':'10px 30px',
+          padding:!mobile?'10px 0px':'10px 30px',
           position:'absolute',
           top:1,left:-1,
           background:'rba(0,0,0,0)',
@@ -951,7 +993,7 @@ export default class App extends React.Component  {
           color:'rgba(55,55,55,0)',
           textShadow:'none',
           fontWeight:600,
-          width:(!mobile?Math.floor(this.state.width*(2/3))-40:window.innerWidth-30)+'px',
+          width:!mobile?'900px':window.innerWidth-30+'px',
           cursor:'default',
         }
         const primerHighlighter = () => {
@@ -973,8 +1015,28 @@ export default class App extends React.Component  {
             return highlightArr;
           }
         }
+        const highlightCodonSelect = () =>{
+          if(!this.state.startCodon||!this.state.stopCodon){
+              const pre = this.state.targetSearch>1?<span>{this.state.fullGene.slice(0, this.state.targetSearch-1)}</span>:null;
+              const pretarget = this.state.targetSearch>1?<span style={{background:'rgba(19,111,99,0.3)'}}>{this.state.fullGene.slice(this.state.targetSearch-1, this.state.targetSearch)}</span>:<span style={{background:'rgba(19,111,99,0.3)'}}>{this.state.fullGene.slice(0, this.state.targetSearch)}</span>
+              const target = <span style={{background:'rgba(19,111,99,0.3)'}}>{this.state.fullGene.slice(this.state.targetSearch, this.state.targetSearch+1)}</span>
+              const posttarget = this.state.targetSearch+3<this.state.fullGene.length?<span style={{background:'rgba(19,111,99,0.3)'}}>{this.state.fullGene.slice(this.state.targetSearch+1, this.state.targetSearch+2)}</span>:<span style={{background:'rgba(19,111,99,0.3)'}}>{this.state.fullGene.slice(this.state.targetSearch+2, this.state.fullGene.length)}</span>
+              const post = this.state.targetSearch+2<this.state.fullGene.length?<span>{this.state.fullGene.slice(this.state.targetSearch+2,this.state.fullGene.length)}</span>:null;
+              return <span>
+                {info}
+                {pre}
+                {pretarget}
+                {target}
+                {posttarget}
+                {post}
+              </span>
+          }
+        }
         return <Fragment>
+          <div style={geneStyle}>{(highlightCodonSelect())}</div>
           <div style={geneStyle}>{(highlightCodons())}</div>
+          <div style={geneStyle}>{(highlightStartCodon())}</div>
+          <div style={geneStyle}>{(highlightStopCodon())}</div>
           {primerHighlighter()}
           <div style={geneStyle}>{pamHighlight()}</div>
           <div style={geneStyle}>{highlightTargetGene()}</div>
@@ -984,18 +1046,26 @@ export default class App extends React.Component  {
          </Fragment>;
         }
     }
-    const gene = <div style={{display:'inline-block',width:(!mobile?Math.floor(this.state.width*(2/3)):window.innerWidth)+'px',textAlign:'left',height:!mobile?this.state.height-204:'auto',}}> 
+    const gene = <div style={{display:'inline-block',width:!mobile?'100%':window.innerWidth-30+'px',textAlign:'left',height:!mobile?this.state.height-204:'auto',}}> 
       <div style={{fontSize:this.state.fontSize+'px',textAlign:'left',position:'relative',display:'block',wordBreak:'break-all',height:this.state.height-204,overflowY:'auto',overflowX:'hidden',fontWeight:600,letterSpacing:'2px'}}>
         {markedUpGene()}
       </div>
     </div>;
+    const codonSelect = () => {
+      if(!this.state.startCodon){
+        return <Fragment><h2 style={{marginTop:"20px",fontWeight:600}}>Select a start codon</h2><br/><span style={{background:"rgba(223,41,53,0.3)"}}>(suggestions are highlighted)</span></Fragment>;
+      } else if(!this.state.stopCodon){
+        return <Fragment><h2 style={{marginTop:"20px",fontWeight:600}}>Select a stop codon</h2><br/><span style={{background:"rgba(223,41,53,0.3)"}}>(suggestions are highlighted)</span></Fragment>;
+      }
+      return null;
+    }
     //Select target area
-    const step1 = !this.state.fullGene?<li>
-      <label>Step 1</label>
-      <h2>Search For A Gene by Name</h2><div>{geneNameForm}</div>
+    const geneSearchForm = !this.state.fullGene?<li>
+      <label>Gene Search</label>
+      <h2>Search for a gene by name.</h2><div>{geneNameForm}</div>
     </li>:null;
-    const step2 = !this.state.fullGene?null:<li>
-      <label>Step 2</label>
+    const targetSearchForm = !this.state.stopCodon?null:<li>
+      <label>Target Search</label>
       <div id='base-padding' class='input-wrap'>
         <i>Base Padding:</i>
         <select disabled={!this.state.fullGene?true:!this.state.potentialTargets?false:true} value={this.state.extraBases} onChange={this.baseSelector.bind(this)}>
@@ -1006,16 +1076,16 @@ export default class App extends React.Component  {
           <option value='4000'>4000</option>
         </select>
       </div>
-      <h2>Click an Area To Find Potential Targets</h2>
+      <h2>Click an area to search for potential targets.</h2>
     </li>;
-    const step3 = !this.state.potentialTargets?null:<li>
-      <label>Step 3</label>
-      <h2>Select From List To Find Potential Primers</h2>
-      <div class='form-wrap' style={{height:this.state.height-304}}><div className='targets'>{targetList()}</div></div>
+    const primerSearchForm = !this.state.potentialTargets?null:<li>
+      <label>Primer Search</label>
+      <h2>Select a target to search for potential primers</h2>
+      <div class='form-wrap' style={{height:this.state.height-96}}><div className='targets'>{targetList()}</div></div>
     </li>;
-    const step4 = !this.state.primers?null:<li>
-      <label>Step 4</label>
-      <h2>Select Your Primers To Download Information</h2>
+    const primerSelectionForm = !this.state.primers?null:<li>
+      <label>Select Primers</label>
+      <h2>Select your primers.</h2>
       <div class='form-wrap' style={{height:this.state.height-336}}><div className='primers'>{primerList()}</div></div>
     </li>
     const primerInfo = !this.state.allPrimers?null:<li>
@@ -1058,8 +1128,8 @@ export default class App extends React.Component  {
         return nums;
       }
 
-
-      return <div id='panel-2' style={{width:(!mobile?Math.floor(this.state.width*(2/3)):window.innerWidth)+'px',height:this.state.height-162+'px',}}>
+      const sidePanel = this.state.sidePanel;
+      return <div id='panel-2' style={{height:this.state.height-34+'px',}}>
         <div class='pam-box'>  
           <div class='info-box'>
             <div><i>Reading Frame: </i>{((this.state.pam-this.state.startCodon+this.state.extraBases)%3)+1}</div>
@@ -1097,23 +1167,23 @@ export default class App extends React.Component  {
       }
       return htmlOptions;
     }
-    const plasmidSelect = <div><select style={{height:26,margin:'12px 0px'}} onChange={this.selectPlasmidTemplate.bind(this)}>
+    const plasmidSelect = <div className="plasmid-button" style={{padding:'0px 10px 10px'}}><select style={{height:26,margin:'12px 0px',width:"250px"}} className="plasmid-button" onChange={this.selectPlasmidTemplate.bind(this)}>
       {plasmidOptions()}
-    </select><button onClick={this.downloadPlasmid.bind(this)}>Download</button><button onClick={this.showPlasmidSelect.bind(this)}>Cancel</button></div>;
+    </select><button className="plasmid-button" onClick={this.downloadPlasmid.bind(this)}>Download</button><button className="plasmid-button" onClick={this.showPlasmidSelect.bind(this)}>Cancel</button></div>;
     const downloadSection = <li className='download-section'>
-      <label>Final Step: Download Files</label>
-      <h2>Make Some Final Adjustments before Downloading</h2>
-      {!this.state.showPamInput?this.state.mutatedPam?pamInfo:<div onClick={this.showPamInput.bind(this)} className='button'>Mutate Pam</div>:pamInput}
-      <div onClick={this.downloadDesignApe.bind(this)} className='button'>Download Ape File</div>
-      {!this.state.showPlasmidSelect?<div onClick={this.showPlasmidSelect.bind(this)} className='button'>Download Plasmid Template</div>:plasmidSelect}
+      <label>Mutate Pam (if desired)</label>
+      {!this.state.showPamInput?this.state.mutatedPam?pamInfo:<div onClick={this.showPamInput.bind(this)} className='button'>Mutate</div>:pamInput}
     </li>
     const toolMenu = <ul class='tool-menu' style={{display:!this.state.subMenu?'none':'block',left:!mobile?'15px':'0px'}}>
-      <li><label className='button' onClick={this.saveDesign.bind(this)}>Save</label></li>
+      <li><a href={window.location.href} target="_blank"><label className='button' >New Project</label></a></li>
+      <li><label className='button' onClick={this.saveDesign.bind(this)}>Save Project</label></li>
       <li>
-        <label className='button'>Upload
+        <label className='button'>Upload Project
           <input onChange={this.openDesign.bind(this)} type='file' style={{display:'none'}}></input>
         </label>
       </li>
+      <li><label onClick={this.downloadDesignApe.bind(this)} className={!this.state.allPrimers?'disabled button':'button'}>Download Ape File</label></li>
+      <li>{!this.state.showPlasmidSelect?<label onClick={this.showPlasmidSelect.bind(this)} className={!this.state.allPrimers?'disabled button plasmid-button':'button plasmid-button'}>Download Plasmid Template</label>:plasmidSelect}</li>
     </ul>;
     const target = !this.state.potentialTargets?null:!this.state.potentialTargets[0].distal?null:this.state.potentialTargets[0];
     const targetInfo = !target?null:<ul style={{display:!this.state.showTargetInfo?'none':'block'}}>
@@ -1134,12 +1204,14 @@ export default class App extends React.Component  {
         </div>
       </li>
     </ul>;
-    const genePanel = <div id='panel-2' style={{width:(!mobile?Math.floor(this.state.width*(2/3)):window.innerWidth)+'px',height:this.state.height-162+'px'}}>
+    const genePanel = <div id='panel-2' style={{height:this.state.height-34+'px'}}>
+      <h1>{title}</h1>
       <ul class='table-key'>
         <li><i>Intergenic Region:</i><b style={{fontFamily:'Roboto Mono',color:'rgba(8,7,8,0.4)'}}>xxx</b></li>
         <li><i>Gene Span:</i><b style={{fontFamily:'Roboto Mono',color:'rgba(8,7,8)'}}>xxx</b></li>
         <li><i>UTR:</i><b style={{fontFamily:'Roboto Mono',color:'rgb(19,111,99)'}}>XXX</b></li>
         <li><i>Coding Region:</i><b style={{fontFamily:'Roboto Mono',color:'rgb(55,114,255)'}}>XXX</b></li>
+        <li><i>Font Size:</i><select disabled={!this.state.fullGene?true:false} value={this.state.fontSize} onChange={this.fontSize.bind(this)}><option value='14' >14</option><option value='16' selected>16</option><option value='18' >18</option><option value='20' >20</option><option value='22' >22</option><option value='24' >24</option></select></li>
       </ul>
       <div class='gene'>{gene}</div>
     </div>
@@ -1148,17 +1220,16 @@ export default class App extends React.Component  {
         <div className='loading' style={{display:!statusMessage?'none':'block'}}><h1>{statusMessage}</h1></div>
         <div className='main'>
           <div class='header'>
-            <h1>{title}</h1>
+            <li className='tool-bar'>
+              <div style={{position:'relative',cursor:'pointer'}} className="menu-button" onClick={this.subMenu.bind(this)}>
+                <img src='/img/fly_log.jpg' style={{width:20,height:22,objectFit:"fill"}} />
+              </div>
+              {toolMenu}
+            </li>
           </div>
-          <div id='panel-1' style={{width:(!mobile?Math.floor(this.state.width*(1/3)):window.innerWidth)+'px',height:(!mobile?this.state.height-162+'px':'auto')}}>
+          <div class='panels'>
+            <div id='panel-1' style={{width:(!mobile?Math.floor(this.state.width*(1/3)):window.innerWidth)+'px',height:(!mobile?this.state.height-34+'px':'auto')}}>
             <ul class='tools'>
-              <li className='tool-bar'>
-                <div style={{float:'left',position:'relative',cursor:'pointer'}} onClick={this.subMenu.bind(this)}>
-                  <img src={toolPic} alt='Tools' style={{float:'left'}} />
-                </div>
-                <i>Font Size:</i> <select disabled={!this.state.fullGene?true:false} value={this.state.fontSize} onChange={this.fontSize.bind(this)}><option value='14' >14</option><option value='16' selected>16</option><option value='18' >18</option><option value='20' >20</option><option value='22' >22</option><option value='24' >24</option></select>
-                {toolMenu}
-              </li>
               <li>
               <div class='tool-box' onClick={this.showTargetInfo.bind(this)} style={{display:!this.state.target?'none':'block'}}>
                 <label>Target Info<div style={{float:'right'}}>{!this.state.showTargetInfo?'+':'-'}</div></label>
@@ -1168,13 +1239,15 @@ export default class App extends React.Component  {
               {!this.state.allPrimers?null:primerInfo}
             </ul>
             <ul class='form'>
-              {step1}
-              {!this.state.potentialTargets?step2:null}
-              {!this.state.primers?step3:null}
-              {!this.state.allPrimers?step4:downloadSection}
+              {geneSearchForm}
+              {!this.state.stopCodon?!this.state.fullGene?null:codonSelect():null}
+              {!this.state.potentialTargets?targetSearchForm:null}
+              {!this.state.primers?primerSearchForm:null}
+              {!this.state.allPrimers?primerSelectionForm:downloadSection}
             </ul>
           </div>
           {!this.state.showPamInput?genePanel:pamBox()}
+          </div>
         </div>
       </div>
     )
